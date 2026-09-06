@@ -1,4 +1,4 @@
-name: Build APK
+name: Build IST Clock APK
 
 on:
   workflow_dispatch:
@@ -24,17 +24,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build APK
-        run: ./gradlew assembleDebug
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: IST-Clock-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: IST-Clock-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
