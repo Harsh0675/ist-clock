@@ -126,20 +126,55 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
             delay(1000L)
         }
     }
-    val pattern = if (use24Hour) {
-        if (showSeconds) "HH:mm:ss" else "HH:mm"
-    } else {
-        if (showSeconds) "hh:mm:ss a" else "hh:mm a"
+
+    val timeFormatter = remember(use24Hour, showSeconds) {
+        DateTimeFormatter.ofPattern(
+            if (use24Hour) {
+                if (showSeconds) "HH:mm:ss" else "HH:mm"
+            } else {
+                if (showSeconds) "hh:mm:ss" else "hh:mm"
+            }
+        )
     }
-    val timeFormatter = remember(pattern) { DateTimeFormatter.ofPattern(pattern) }
     val dateFormatter = remember { DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy") }
+    val meridiem = if (use24Hour) "" else now.format(DateTimeFormatter.ofPattern("a"))
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(color = theme.cardColor, shape = RoundedCornerShape(34.dp), shadowElevation = 10.dp) {
             Column(Modifier.padding(horizontal = 24.dp, vertical = 30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("INDIA", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = theme.subColor, letterSpacing = 2.sp)
                 Spacer(Modifier.height(10.dp))
-                Text(now.format(timeFormatter), fontSize = if (showSeconds) 49.sp else 56.sp, fontWeight = FontWeight.ExtraBold, color = theme.timeColor, textAlign = TextAlign.Center, fontFamily = FontFamily.Monospace)
+
+                // Keep the AM/PM indicator on the same line as the clock.
+                // The previous single Text could wrap "AM" onto a second line on narrow screens.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        now.format(timeFormatter),
+                        fontSize = if (showSeconds) 45.sp else 51.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = theme.timeColor,
+                        textAlign = TextAlign.Center,
+                        fontFamily = FontFamily.Monospace,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                    if (!use24Hour) {
+                        Spacer(Modifier.width(7.dp))
+                        Text(
+                            meridiem,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = theme.timeColor,
+                            fontFamily = FontFamily.Monospace,
+                            maxLines = 1
+                        )
+                    }
+                }
+
                 Spacer(Modifier.height(10.dp))
                 Text(now.format(dateFormatter), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = theme.subColor, textAlign = TextAlign.Center)
             }
