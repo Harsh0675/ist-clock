@@ -62,7 +62,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun IstClockApp() {
-    val prefs = remember { getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
+    val context = LocalContext.current
+    val prefs = remember(context) { context.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
     var selectedId by remember { mutableStateOf(prefs.getString("theme", "midnight") ?: "midnight") }
     var showSeconds by remember { mutableStateOf(prefs.getBoolean("seconds", true)) }
     var use24Hour by remember { mutableStateOf(prefs.getBoolean("24hour", false)) }
@@ -144,9 +145,6 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
             Column(Modifier.padding(horizontal = 24.dp, vertical = 30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("INDIA", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = theme.subColor, letterSpacing = 2.sp)
                 Spacer(Modifier.height(10.dp))
-
-                // Keep the AM/PM indicator on the same line as the clock.
-                // The previous single Text could wrap "AM" onto a second line on narrow screens.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -174,7 +172,6 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
                         )
                     }
                 }
-
                 Spacer(Modifier.height(10.dp))
                 Text(now.format(dateFormatter), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = theme.subColor, textAlign = TextAlign.Center)
             }
