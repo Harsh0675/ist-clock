@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -99,9 +100,9 @@ fun ThemeSelector(selected: ClockTheme, onSelect: (ClockTheme) -> Unit) {
 
 @Composable
 fun ThemeChip(theme: ClockTheme, isSelected: Boolean, onClick: () -> Unit) {
-    animateFloatAsState(if (isSelected) 1.08f else 1f, label = "chipScale")
+    val scale by animateFloatAsState(if (isSelected) 1.1f else 1f, label = "chipScale")
     Box(Modifier.clip(RoundedCornerShape(20.dp)).background(theme.cardColor).clip(RoundedCornerShape(20.dp))) {
-        TextButton(onClick = onClick) {
+        TextButton(onClick = onClick, modifier = Modifier.scale(scale)) {
             Text(theme.label, color = theme.timeColor, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
         }
     }
