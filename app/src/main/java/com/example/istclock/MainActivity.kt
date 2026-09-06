@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -73,19 +74,15 @@ fun IstClockApp() {
                 Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Header(theme = selectedTheme)
+                Header(selectedTheme)
                 Spacer(Modifier.height(22.dp))
                 StatusPill(selectedTheme)
                 Spacer(Modifier.height(26.dp))
                 LiveClockDisplay(selectedTheme, showSeconds, use24Hour)
                 Spacer(Modifier.height(26.dp))
-                QuickControls(
-                    theme = selectedTheme,
-                    showSeconds = showSeconds,
-                    use24Hour = use24Hour,
+                QuickControls(selectedTheme, showSeconds, use24Hour,
                     onSeconds = { showSeconds = it; prefs.edit().putBoolean("seconds", it).apply() },
-                    on24Hour = { use24Hour = it; prefs.edit().putBoolean("24hour", it).apply() }
-                )
+                    on24Hour = { use24Hour = it; prefs.edit().putBoolean("24hour", it).apply() })
                 Spacer(Modifier.weight(1f))
                 ThemeSelector(selectedTheme) {
                     selectedId = it.id
@@ -136,17 +133,15 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
     }
     val timeFormatter = remember(pattern) { DateTimeFormatter.ofPattern(pattern) }
     val dateFormatter = remember { DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy") }
-    val time = now.format(timeFormatter)
-    val date = now.format(dateFormatter)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(color = theme.cardColor, shape = RoundedCornerShape(34.dp), shadowElevation = 10.dp) {
             Column(Modifier.padding(horizontal = 24.dp, vertical = 30.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("INDIA", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = theme.subColor, letterSpacing = 2.sp)
                 Spacer(Modifier.height(10.dp))
-                Text(time, fontSize = if (showSeconds) 49.sp else 56.sp, fontWeight = FontWeight.ExtraBold, color = theme.timeColor, textAlign = TextAlign.Center, fontFamily = FontFamily.Monospace)
+                Text(now.format(timeFormatter), fontSize = if (showSeconds) 49.sp else 56.sp, fontWeight = FontWeight.ExtraBold, color = theme.timeColor, textAlign = TextAlign.Center, fontFamily = FontFamily.Monospace)
                 Spacer(Modifier.height(10.dp))
-                Text(date, fontSize = 15.sp, fontWeight = FontWeight.Medium, color = theme.subColor, textAlign = TextAlign.Center)
+                Text(now.format(dateFormatter), fontSize = 15.sp, fontWeight = FontWeight.Medium, color = theme.subColor, textAlign = TextAlign.Center)
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -156,11 +151,15 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
 
 @Composable
 private fun QuickControls(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean, onSeconds: (Boolean) -> Unit, on24Hour: (Boolean) -> Unit) {
+    val context = LocalContext.current
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         ControlCard("Seconds", if (showSeconds) "ON" else "OFF", showSeconds, theme, Modifier.weight(1f)) { onSeconds(!showSeconds) }
         ControlCard("24-hour", if (use24Hour) "ON" else "OFF", use24Hour, theme, Modifier.weight(1f)) { on24Hour(!use24Hour) }
         ControlCard("Copy", "TIME", false, theme, Modifier.weight(1f)) {
-            val clipboard = (it as? Context)
+            val text = ZonedDateTime.now(IST_ZONE).format(DateTimeFormatter.ofPattern("hh:mm:ss a")) + " • IST"
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("IST Clock", text))
+            Toast.makeText(context, "Time copied", Toast.LENGTH_SHORT).show()
         }
     }
 }
@@ -196,7 +195,6 @@ fun ThemeSelector(selected: ClockTheme, onSelect: (ClockTheme) -> Unit) {
 fun ThemeChip(theme: ClockTheme, isSelected: Boolean, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
-            .clip(RoundedCornerShape(18.dp))
             .clickable { onClick() }
             .then(if (isSelected) Modifier.border(2.dp, theme.timeColor, RoundedCornerShape(18.dp)) else Modifier),
         color = theme.cardColor,
