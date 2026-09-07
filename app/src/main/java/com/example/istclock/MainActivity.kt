@@ -152,6 +152,7 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
                 ) {
                     Text(
                         now.format(timeFormatter),
+                        modifier = Modifier.alignByBaseline(),
                         fontSize = if (showSeconds) 45.sp else 51.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = theme.timeColor,
@@ -164,6 +165,7 @@ fun LiveClockDisplay(theme: ClockTheme, showSeconds: Boolean, use24Hour: Boolean
                         Spacer(Modifier.width(7.dp))
                         Text(
                             meridiem,
+                            modifier = Modifier.alignByBaseline(),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = theme.timeColor,
